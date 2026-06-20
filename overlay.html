@@ -6,14 +6,12 @@
     <title>GTA 6 Overlay</title>
     <style>
         :root {
-            /* TIMING SETTINGS */
             --phase1-duration: 4s;  
             --phase2-duration: 3s;  
             --phase3-duration: 3s;  
             --hold-duration: 4s;     
             --hide-duration: 1.5s;   
             
-            /* TEXT SETTINGS */
             --font-family: 'Arial Black', Impact, sans-serif;
             --font-size: 400px; /* Default size, JS will dynamically shrink this if needed */         
             --letter-spacing: 4px;      
@@ -54,10 +52,7 @@
             stroke-miterlimit: 4; 
         }
 
-        /* RESPONSIVE STROKES & BLURS
-           Using 'em' means 1em = the current font size.
-           If JS shrinks the text to fit the screen, the glows perfectly scale down with it!
-        */
+        /* RESPONSIVE STROKES & BLURS */
         .ray-base { fill: transparent; stroke: url(#gta6-gradient); }
         .ray-wrapper { mix-blend-mode: screen; }
         
@@ -105,28 +100,28 @@
                 <stop offset="100%" stop-color="#c800ff" />
             </linearGradient>
 
-            <linearGradient id="p2-stroke-grad" gradientUnits="userSpaceOnUse">
+            <linearGradient id="p2-stroke-grad" gradientUnits="userSpaceOnUse" x1="0" x2="0">
                 <stop offset="0%" stop-color="#790078" />
                 <stop offset="100%" stop-color="#3e0062" />
             </linearGradient>
 
-            <linearGradient id="p2-fill-grad" gradientUnits="userSpaceOnUse">
+            <linearGradient id="p2-fill-grad" gradientUnits="userSpaceOnUse" x1="0" x2="0">
                 <stop id="stop-1" offset="0%"   stop-color="#3e0062" /> 
                 <stop id="stop-2" offset="20%"  stop-color="#f465bf" /> 
                 <stop id="stop-3" offset="50%"  stop-color="#f465bf" /> 
                 <stop id="stop-4" offset="100%" stop-color="#f465bf" /> 
             </linearGradient>
 
-            <pattern id="palm-pattern" patternUnits="userSpaceOnUse" x="0">
-                <image id="palm-img" href="palms.png" xlink:href="palms.png" preserveAspectRatio="xMidYMid slice" />
+            <pattern id="palm-pattern" width="100%" height="100%" patternContentUnits="objectBoundingBox">
+                <image href="palms.png" xlink:href="palms.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice" />
             </pattern>
 
-            <linearGradient id="mask-grad" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mask-grad" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="-2000" y2="-1000">
                 <stop offset="0%" stop-color="white" />
                 <stop offset="100%" stop-color="black" />
             </linearGradient>
             <mask id="reveal-mask">
-                <rect x="-1000" y="-4000" width="6000" height="10000" fill="url(#mask-grad)" />
+                <rect x="-2000" y="-4000" width="8000" height="10000" fill="url(#mask-grad)" />
             </mask>
 
             <linearGradient id="bloom-wipe-grad" x1="0" y1="0" x2="0" y2="1">
@@ -135,11 +130,11 @@
                 <stop offset="100%" stop-color="white" />
             </linearGradient>
             <mask id="fill-wipe-mask">
-                <rect id="fill-wipe-rect" x="-1000" width="6000" height="4000" fill="url(#bloom-wipe-grad)" />
+                <rect id="fill-wipe-rect" x="-2000" y="5000" width="8000" height="4000" fill="url(#bloom-wipe-grad)" />
             </mask>
 
             <mask id="block-inner">
-                <rect x="-1000" y="-4000" width="6000" height="10000" fill="white" />
+                <rect x="-2000" y="-4000" width="8000" height="10000" fill="white" />
                 <text x="50%" y="50%" class="text-base blocker-style auto-text"></text>
             </mask>
         </defs>
@@ -154,10 +149,12 @@
         
         <g mask="url(#reveal-mask)">
             <text x="50%" y="50%" class="text-base gta-front-layer auto-text"></text>
+            
             <g mask="url(#fill-wipe-mask)">
                 <text x="50%" y="50%" class="text-base phase2-fill auto-text"></text>
                 <text x="50%" y="50%" class="text-base phase3-palms auto-text"></text>
             </g>
+
             <text x="50%" y="50%" class="text-base phase2-grad-stroke auto-text"></text>
             <text x="50%" y="50%" class="text-base phase2-white-stroke auto-text"></text>
         </g>
@@ -189,7 +186,6 @@
                     tspan.textContent = line;
                     tspan.setAttribute('x', '50%');
                     if (index === 0) {
-                        // Perfectly centers the text vertically around the 50% mark
                         const offset = -((lines.length - 1) * emSpacing) / 2;
                         tspan.setAttribute('dy', `${offset}em`);
                     } else {
@@ -199,44 +195,33 @@
                 });
             });
 
-            // Wait for fonts to load before calculating math
+            // Wait for fonts to fully load before calculating math
             document.fonts.ready.then(() => {
                 const fillText = document.querySelector('.phase2-fill');
                 let box = fillText.getBBox();
 
                 // 1. THE AUTO-FIT ENGINE
-                // Calculate a safe zone (90% of the screen)
                 const safeW = canvasW * 0.9;
                 const safeH = canvasH * 0.9;
 
-                // If the text is larger than the safe zone, shrink the font size
                 if (box.width > safeW || box.height > safeH) {
                     const scale = Math.min(safeW / box.width, safeH / box.height);
                     const newFontSize = Math.floor(400 * scale);
                     document.documentElement.style.setProperty('--font-size', `${newFontSize}px`);
                 }
 
-                // Wait for the browser to redraw the smaller text before calculating the animations
+                // Double animation-frame wait guarantees the browser has updated the smaller font size physically
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        // Get the new, perfectly fitted bounding box
+                        // Get the newly scaled, perfect bounding box
                         box = fillText.getBBox();
 
-                        // 2. Map absolute gradients exactly to the fitted text size
+                        // 2. Map absolute gradients exactly to the custom text size
                         document.getElementById('p2-stroke-grad').setAttribute('y1', box.y + box.height);
                         document.getElementById('p2-stroke-grad').setAttribute('y2', box.y);
                         
                         document.getElementById('p2-fill-grad').setAttribute('y1', box.y);
                         document.getElementById('p2-fill-grad').setAttribute('y2', box.y + box.height);
-                        
-                        const pat = document.getElementById('palm-pattern');
-                        pat.setAttribute('y', box.y);
-                        pat.setAttribute('width', canvasW);
-                        pat.setAttribute('height', box.height);
-                        
-                        const img = document.getElementById('palm-img');
-                        img.setAttribute('width', canvasW);
-                        img.setAttribute('height', box.height);
 
                         // 3. Build SMIL Animations dynamically
                         const rootStyles = getComputedStyle(document.documentElement);
@@ -267,9 +252,9 @@
                         grad.appendChild(createAnim('y1', box.y - 1000, box.y + box.height + 200, p1Dur, 0));
                         grad.appendChild(createAnim('y2', box.y - 500, box.y + box.height + 500, p1Dur, 0));
 
-                        // PHASE 2: Bottom-Up Bloom
+                        // PHASE 2: Bottom-Up Bloom Wipe
                         const fillRect = document.getElementById('fill-wipe-rect');
-                        fillRect.appendChild(createAnim('y', box.y + box.height + 200, box.y - 400, p2Dur, p2Start));
+                        fillRect.appendChild(createAnim('y', box.y + box.height + 200, box.y - 4000, p2Dur, p2Start));
 
                         // PHASE 3: Color Morph
                         document.getElementById('stop-1').appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
