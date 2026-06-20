@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GTA 6 Overlay</title>
     <style>
+        /* =========================================
+           🔤 CUSTOM FONT LOADER
+           ========================================= */
+        @font-face {
+            font-family: 'GTA Art Deco';
+            src: url('GTA Art Deco - Medium.ttf') format('truetype');
+            font-weight: 900;
+        }
+        @font-face {
+            font-family: 'GTA Art Deco';
+            src: url('GTA Art Deco - Regular.ttf') format('truetype');
+            font-weight: normal;
+        }
+
         :root {
             /* =========================================
                🎨 THE COMMAND CENTER
@@ -18,7 +32,7 @@
             --hide-duration: 1.5s;   
             
             /* TEXT SETTINGS */
-            --font-family: 'Arial Black', Impact, sans-serif;
+            --font-family: 'GTA Art Deco', 'Arial Black', Impact, sans-serif;
             --font-size: 400px;          
             --letter-spacing: 4px;      
         }
@@ -204,107 +218,113 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Read URL Parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const userText = urlParams.get('text') || "BIG\nCAT";
-            
-            const lines = userText.split('\n');
-            const lineSpacing = 330;
-            const capHeight = 300; 
-            const descender = 100;
+            // SECURITY LOCK: Wait for the local TTF files to render before calculating text sizes
+            document.fonts.ready.then(() => {
+                
+                // Read URL Parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const userText = urlParams.get('text') || "BIG\nCAT";
+                const canvasW = parseFloat(urlParams.get('w')) || 1920;
+                const canvasH = parseFloat(urlParams.get('h')) || 1080;
 
-            // 1. Measure string width natively to ensure it perfectly fits
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = "900 400px 'Arial Black', Impact, sans-serif";
-            let textWidth = 0;
-            lines.forEach(line => {
-                const spacing = line.length * 4; 
-                const w = ctx.measureText(line).width + spacing;
-                if (w > textWidth) textWidth = w;
-            });
+                const lines = userText.split('\n');
+                const lineSpacing = 330;
+                const capHeight = 300; 
+                const descender = 100;
 
-            const textHeight = (lines.length - 1) * lineSpacing + capHeight + descender;
-
-            // 2. Adjust viewBox Camera instead of squishing graphics
-            const scale = Math.max(1, textWidth / (1920 * 0.9), textHeight / (1080 * 0.9));
-            const viewW = 1920 * scale;
-            const viewH = 1080 * scale;
-
-            const svg = document.getElementById('main-svg');
-            svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
-            svg.style.width = '1920px';
-            svg.style.height = '1080px';
-
-            // 3. Mathematical Centering
-            const centerY = viewH / 2;
-            const startOffset = -((lines.length - 1) * lineSpacing) / 2;
-            
-            const topY = centerY + startOffset - capHeight;
-            const bottomY = centerY + (lines.length - 1) * lineSpacing + startOffset + descender;
-            const actualTextHeight = bottomY - topY;
-
-            // Populate Text
-            const textElements = document.querySelectorAll('.auto-text');
-            textElements.forEach(el => {
-                el.innerHTML = ''; 
-                lines.forEach((line, index) => {
-                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                    tspan.textContent = line;
-                    tspan.setAttribute('x', '50%');
-                    tspan.setAttribute('dy', index === 0 ? startOffset : lineSpacing);
-                    el.appendChild(tspan);
+                // 1. Measure string width natively (Updated to use the new GTA Font)
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.font = "900 400px 'GTA Art Deco', 'Arial Black', sans-serif";
+                let textWidth = 0;
+                lines.forEach(line => {
+                    const spacing = line.length * 4; 
+                    const w = ctx.measureText(line).width + spacing;
+                    if (w > textWidth) textWidth = w;
                 });
-            });
 
-            // 4. Anchor Gradients mathematically
-            document.getElementById('p2-stroke-grad').setAttribute('y1', bottomY);
-            document.getElementById('p2-stroke-grad').setAttribute('y2', topY);
-            
-            document.getElementById('p2-fill-grad').setAttribute('y1', topY);
-            document.getElementById('p2-fill-grad').setAttribute('y2', bottomY);
+                const textHeight = (lines.length - 1) * lineSpacing + capHeight + descender;
 
-            // 5. Dynamic SMIL Animations based on calculated bounds
-            const rootStyles = getComputedStyle(document.documentElement);
-            const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
-            const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
-            const p3Dur = parseFloat(rootStyles.getPropertyValue('--phase3-duration')); 
-            const p2Start = p1Dur;
-            const p3Start = p1Dur + p2Dur;
+                // 2. Adjust viewBox Camera instead of squishing graphics
+                const scale = Math.max(1, textWidth / (canvasW * 0.9), textHeight / (canvasH * 0.9));
+                const viewW = canvasW * scale;
+                const viewH = canvasH * scale;
 
-            const createAnim = (attr, from, to, dur, begin, calcMode = 'spline') => {
-                const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-                anim.setAttribute('attributeName', attr);
-                anim.setAttribute('from', from);
-                anim.setAttribute('to', to);
-                anim.setAttribute('begin', `${begin}s`);
-                anim.setAttribute('dur', `${dur}s`);
-                anim.setAttribute('fill', 'freeze');
-                anim.setAttribute('calcMode', calcMode);
-                if (calcMode === 'spline') {
-                    anim.setAttribute('keyTimes', '0; 1');
-                    anim.setAttribute('keySplines', '0.4 0 0.2 1'); 
-                }
-                return anim;
-            };
+                const svg = document.getElementById('main-svg');
+                svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
+                svg.style.width = `${canvasW}px`;
+                svg.style.height = `${canvasH}px`;
 
-            // PHASE 1: Top-Down Cinematic Wipe
-            const grad = document.getElementById('mask-grad');
-            grad.appendChild(createAnim('y1', topY - 1500, bottomY + 500, p1Dur, 0));
-            grad.appendChild(createAnim('y2', topY - 1000, bottomY + 1000, p1Dur, 0));
+                // 3. Mathematical Centering
+                const centerY = viewH / 2;
+                const startOffset = -((lines.length - 1) * lineSpacing) / 2;
+                
+                const topY = centerY + startOffset - capHeight;
+                const bottomY = centerY + (lines.length - 1) * lineSpacing + startOffset + descender;
+                const actualTextHeight = bottomY - topY;
 
-            // PHASE 2: Bottom-Up Bloom Wipe spans safely across the text height
-            const fillRect = document.getElementById('fill-wipe-rect');
-            fillRect.appendChild(createAnim('y', bottomY + 500, topY - 1000, p2Dur, p2Start));
+                // Populate Text
+                const textElements = document.querySelectorAll('.auto-text');
+                textElements.forEach(el => {
+                    el.innerHTML = ''; 
+                    lines.forEach((line, index) => {
+                        const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                        tspan.textContent = line;
+                        tspan.setAttribute('x', '50%');
+                        tspan.setAttribute('dy', index === 0 ? startOffset : lineSpacing);
+                        el.appendChild(tspan);
+                    });
+                });
 
-            // PHASE 3: Seamless Color Morph
-            document.getElementById('stop-1').appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
-            document.getElementById('stop-2').appendChild(createAnim('stop-color', '#f465bf', '#776add', p3Dur, p3Start, 'linear'));
-            document.getElementById('stop-4').appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
+                // 4. Anchor Gradients mathematically
+                document.getElementById('p2-stroke-grad').setAttribute('y1', bottomY);
+                document.getElementById('p2-stroke-grad').setAttribute('y2', topY);
+                
+                document.getElementById('p2-fill-grad').setAttribute('y1', topY);
+                document.getElementById('p2-fill-grad').setAttribute('y2', bottomY);
 
-            // PHASE 3: Reveal Palms
-            document.querySelectorAll('.phase3-palms').forEach(p => {
-                p.appendChild(createAnim('opacity', '0', '0.85', p3Dur, p3Start, 'linear'));
+                // 5. Dynamic SMIL Animations based on calculated bounds
+                const rootStyles = getComputedStyle(document.documentElement);
+                const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
+                const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
+                const p3Dur = parseFloat(rootStyles.getPropertyValue('--phase3-duration')); 
+                const p2Start = p1Dur;
+                const p3Start = p1Dur + p2Dur;
+
+                const createAnim = (attr, from, to, dur, begin, calcMode = 'spline') => {
+                    const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+                    anim.setAttribute('attributeName', attr);
+                    anim.setAttribute('from', from);
+                    anim.setAttribute('to', to);
+                    anim.setAttribute('begin', `${begin}s`);
+                    anim.setAttribute('dur', `${dur}s`);
+                    anim.setAttribute('fill', 'freeze');
+                    anim.setAttribute('calcMode', calcMode);
+                    if (calcMode === 'spline') {
+                        anim.setAttribute('keyTimes', '0; 1');
+                        anim.setAttribute('keySplines', '0.4 0 0.2 1'); 
+                    }
+                    return anim;
+                };
+
+                // PHASE 1: Top-Down Cinematic Wipe
+                const grad = document.getElementById('mask-grad');
+                grad.appendChild(createAnim('y1', topY - 1500, bottomY + 500, p1Dur, 0));
+                grad.appendChild(createAnim('y2', topY - 1000, bottomY + 1000, p1Dur, 0));
+
+                // PHASE 2: Bottom-Up Bloom Wipe spans safely across the text height
+                const fillRect = document.getElementById('fill-wipe-rect');
+                fillRect.appendChild(createAnim('y', bottomY + 500, topY - 1000, p2Dur, p2Start));
+
+                // PHASE 3: Seamless Color Morph
+                document.getElementById('stop-1').appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
+                document.getElementById('stop-2').appendChild(createAnim('stop-color', '#f465bf', '#776add', p3Dur, p3Start, 'linear'));
+                document.getElementById('stop-4').appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
+
+                // PHASE 3: Reveal Palms
+                document.querySelectorAll('.phase3-palms').forEach(p => {
+                    p.appendChild(createAnim('opacity', '0', '0.85', p3Dur, p3Start, 'linear'));
+                });
             });
         });
     </script>
