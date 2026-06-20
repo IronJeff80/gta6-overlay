@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA 6 Stream Overlay Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0015;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1a002b;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(200, 0, 255, 0.2);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #c800ff;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            color: #ffb300;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 20px;
+            color: #c800ff;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 6px;
+            border: 1px solid #3e0062;
+            background-color: #0d0015;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 30px;
+            background: linear-gradient(90deg, #c800ff, #ffb300);
+            border: none;
+            border-radius: 6px;
+            color: #000;
+            font-weight: 900;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.02);
+        }
+        .output-box {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #3e0062;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>GTA 6 OVERLAY GENERATOR</h1>
+        
+        <label>Enter Your Text (Multi-line supported)</label>
+        <textarea id="obs-text" rows="3" placeholder="BIG&#10;CAT">BIG&#10;CAT</textarea>
+
+        <div class="row">
+            <div style="flex: 1;">
+                <label>OBS Canvas Width</label>
+                <input type="number" id="obs-w" value="1920">
+            </div>
+            <div style="flex: 1;">
+                <label>OBS Canvas Height</label>
+                <input type="number" id="obs-h" value="1080">
+            </div>
+        </div>
+
+        <button onclick="generateLink()">GENERATE OBS LINK</button>
+
+        <div class="output-box">
+            <label>Paste this URL into an OBS Browser Source:</label>
+            <div class="row">
+                <input type="text" id="output-url" readonly placeholder="Your URL will appear here...">
+                <button style="margin-top: 8px; width: 100px; font-size: 14px;" onclick="copyLink()">Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateLink() {
+            const text = document.getElementById('obs-text').value;
+            const w = document.getElementById('obs-w').value;
+            const h = document.getElementById('obs-h').value;
+            
+            // Gets the current URL path and swaps index.html for overlay.html
+            const baseUrl = window.location.href.split('?')[0].replace('index.html', '');
+            const finalUrl = `${baseUrl}overlay.html?text=${encodeURIComponent(text)}&w=${w}&h=${h}`;
+            
+            document.getElementById('output-url').value = finalUrl;
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById("output-url");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Copied to clipboard!");
+        }
+    </script>
+</body>
+</html>
