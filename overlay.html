@@ -6,17 +6,24 @@
     <title>GTA 6 Overlay</title>
     <style>
         :root {
+            /* =========================================
+               🎨 THE COMMAND CENTER
+               ========================================= */
+            
+            /* TIMING SETTINGS */
             --phase1-duration: 4s;  
             --phase2-duration: 3s;  
             --phase3-duration: 3s;  
             --hold-duration: 4s;     
             --hide-duration: 1.5s;   
             
+            /* TEXT SETTINGS */
             --font-family: 'Arial Black', Impact, sans-serif;
-            --font-size: 400px; /* Default size, JS will dynamically shrink this if needed */         
+            --font-size: 400px;          
             --letter-spacing: 4px;      
         }
 
+        /* OBS Transparent Background */
         body {
             margin: 0;
             overflow: hidden;
@@ -28,6 +35,7 @@
             perspective: 1000px; 
         }
 
+        /* THE FLY-THROUGH HIDE ANIMATION */
         svg {
             overflow: visible;
             transform-origin: center center;
@@ -41,6 +49,7 @@
             100% { transform: scale(40); opacity: 0; }
         }
 
+        /* Shared Text Properties */
         .text-base {
             font-family: var(--font-family);
             font-size: var(--font-size); 
@@ -52,42 +61,76 @@
             stroke-miterlimit: 4; 
         }
 
-        /* RESPONSIVE STROKES & BLURS */
-        .ray-base { fill: transparent; stroke: url(#gta6-gradient); }
+        /* =========================================
+           PHASE 1: VOLUMETRIC LIGHT RAYS 
+           (Reverted to absolute PX to restore smooth bloom)
+           ========================================= */
+        .ray-base {
+            fill: transparent;
+            stroke: url(#gta6-gradient);
+        }
         .ray-wrapper { mix-blend-mode: screen; }
+        .wrapper-5 { filter: blur(45px); opacity: 0.15; }
+        .wrapper-4 { filter: blur(25px); opacity: 0.25; }
+        .wrapper-3 { filter: blur(12px); opacity: 0.4; }
+        .wrapper-2 { filter: blur(6px); opacity: 0.7; }
+        .wrapper-1 { filter: blur(2px); opacity: 0.9; }
+
+        .ray-5 { stroke-width: 160px; }
+        .ray-4 { stroke-width: 100px; }
+        .ray-3 { stroke-width: 50px; }
+        .ray-2 { stroke-width: 24px; }
+        .ray-1 { stroke-width: 12px; }
+
+        /* The Glow Bleed Blocker */
+        .blocker-style {
+            fill: black;
+            stroke: black;
+            stroke-width: 26px; 
+        }
+
+        /* =========================================
+           PHASE 2 & 3: LAYER SIZING & ANIMATIONS
+           ========================================= */
         
-        .wrapper-5 { filter: blur(0.1125em); opacity: 0.15; }
-        .wrapper-4 { filter: blur(0.0625em); opacity: 0.25; }
-        .wrapper-3 { filter: blur(0.03em); opacity: 0.4; }
-        .wrapper-2 { filter: blur(0.015em); opacity: 0.7; }
-        .wrapper-1 { filter: blur(0.005em); opacity: 0.9; }
+        .gta-front-layer {
+            fill: #130024; 
+            stroke: #130024;
+            stroke-width: 28px; 
+        }
 
-        .ray-5 { stroke-width: 0.4em; }
-        .ray-4 { stroke-width: 0.25em; }
-        .ray-3 { stroke-width: 0.125em; }
-        .ray-2 { stroke-width: 0.06em; }
-        .ray-1 { stroke-width: 0.03em; }
+        .phase2-fill {
+            fill: url(#p2-fill-grad);
+            stroke-width: 0px; 
+        }
 
-        .blocker-style { fill: black; stroke: black; stroke-width: 0.065em; }
-
-        .gta-front-layer { fill: #130024; stroke: #130024; stroke-width: 0.07em; }
-        .phase2-fill { fill: url(#p2-fill-grad); stroke-width: 0px; }
-        .phase3-palms { fill: url(#palm-pattern); opacity: 0; mix-blend-mode: multiply; }
+        .phase3-palms {
+            fill: url(#palm-pattern);
+            opacity: 0; 
+            mix-blend-mode: multiply; 
+        }
 
         .phase2-grad-stroke {
-            fill: transparent; stroke: url(#p2-stroke-grad); stroke-width: 0.05em; 
-            opacity: 0;
-            animation: fadeIn var(--phase2-duration) ease-in-out forwards;
-            animation-delay: var(--phase1-duration); 
-        }
-        .phase2-white-stroke {
-            fill: transparent; stroke: white; stroke-width: 0.02em; 
+            fill: transparent;
+            stroke: url(#p2-stroke-grad);
+            stroke-width: 20px; 
             opacity: 0;
             animation: fadeIn var(--phase2-duration) ease-in-out forwards;
             animation-delay: var(--phase1-duration); 
         }
 
-        @keyframes fadeIn { to { opacity: 1; } }
+        .phase2-white-stroke {
+            fill: transparent;
+            stroke: white;
+            stroke-width: 8px; 
+            opacity: 0;
+            animation: fadeIn var(--phase2-duration) ease-in-out forwards;
+            animation-delay: var(--phase1-duration); 
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -112,16 +155,16 @@
                 <stop id="stop-4" offset="100%" stop-color="#f465bf" /> 
             </linearGradient>
 
-            <pattern id="palm-pattern" width="100%" height="100%" patternContentUnits="objectBoundingBox">
-                <image href="palms.png" xlink:href="palms.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice" />
+            <pattern id="palm-pattern" patternUnits="userSpaceOnUse" x="0">
+                <image id="palm-img" href="palms.png" xlink:href="palms.png" preserveAspectRatio="xMidYMid slice" />
             </pattern>
 
-            <linearGradient id="mask-grad" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="-2000" y2="-1000">
+            <linearGradient id="mask-grad" x1="0" x2="0" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stop-color="white" />
                 <stop offset="100%" stop-color="black" />
             </linearGradient>
             <mask id="reveal-mask">
-                <rect x="-2000" y="-4000" width="8000" height="10000" fill="url(#mask-grad)" />
+                <rect x="-5000" y="-5000" width="10000" height="15000" fill="url(#mask-grad)" />
             </mask>
 
             <linearGradient id="bloom-wipe-grad" x1="0" y1="0" x2="0" y2="1">
@@ -130,11 +173,11 @@
                 <stop offset="100%" stop-color="white" />
             </linearGradient>
             <mask id="fill-wipe-mask">
-                <rect id="fill-wipe-rect" x="-2000" y="5000" width="8000" height="4000" fill="url(#bloom-wipe-grad)" />
+                <rect id="fill-wipe-rect" x="-5000" width="10000" height="3000" fill="url(#bloom-wipe-grad)" />
             </mask>
 
             <mask id="block-inner">
-                <rect x="-2000" y="-4000" width="8000" height="10000" fill="white" />
+                <rect x="-5000" y="-5000" width="10000" height="10000" fill="white" />
                 <text x="50%" y="50%" class="text-base blocker-style auto-text"></text>
             </mask>
         </defs>
@@ -165,108 +208,113 @@
             // Read URL Parameters
             const urlParams = new URLSearchParams(window.location.search);
             const userText = urlParams.get('text') || "BIG\nCAT";
-            const canvasW = parseFloat(urlParams.get('w')) || 1920;
-            const canvasH = parseFloat(urlParams.get('h')) || 1080;
-
-            // Set dynamic canvas size
-            const svg = document.getElementById('main-svg');
-            svg.setAttribute('viewBox', `0 0 ${canvasW} ${canvasH}`);
-            svg.style.width = `${canvasW}px`;
-            svg.style.height = `${canvasH}px`;
-
-            // Smart Multiline Text Engine
+            
             const lines = userText.split('\n');
-            const textElements = document.querySelectorAll('.auto-text');
-            const emSpacing = 0.85; 
+            const lineSpacing = 330;
+            const capHeight = 300; 
+            const descender = 100;
 
+            // 1. Measure string width natively to ensure it perfectly fits
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = "900 400px 'Arial Black', Impact, sans-serif";
+            let textWidth = 0;
+            lines.forEach(line => {
+                const spacing = line.length * 4; 
+                const w = ctx.measureText(line).width + spacing;
+                if (w > textWidth) textWidth = w;
+            });
+
+            const textHeight = (lines.length - 1) * lineSpacing + capHeight + descender;
+
+            // 2. Adjust viewBox Camera instead of squishing graphics
+            const scale = Math.max(1, textWidth / (1920 * 0.9), textHeight / (1080 * 0.9));
+            const viewW = 1920 * scale;
+            const viewH = 1080 * scale;
+
+            const svg = document.getElementById('main-svg');
+            svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
+            svg.style.width = '1920px';
+            svg.style.height = '1080px';
+
+            // 3. Mathematical Centering (Replaces buggy getBBox)
+            const centerY = viewH / 2;
+            const startOffset = -((lines.length - 1) * lineSpacing) / 2;
+            
+            const topY = centerY + startOffset - capHeight;
+            const bottomY = centerY + (lines.length - 1) * lineSpacing + startOffset + descender;
+            const actualTextHeight = bottomY - topY;
+
+            // Populate Text
+            const textElements = document.querySelectorAll('.auto-text');
             textElements.forEach(el => {
                 el.innerHTML = ''; 
                 lines.forEach((line, index) => {
                     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
                     tspan.textContent = line;
                     tspan.setAttribute('x', '50%');
-                    if (index === 0) {
-                        const offset = -((lines.length - 1) * emSpacing) / 2;
-                        tspan.setAttribute('dy', `${offset}em`);
-                    } else {
-                        tspan.setAttribute('dy', `${emSpacing}em`);
-                    }
+                    tspan.setAttribute('dy', index === 0 ? startOffset : lineSpacing);
                     el.appendChild(tspan);
                 });
             });
 
-            // Wait for fonts to fully load before calculating math
-            document.fonts.ready.then(() => {
-                const fillText = document.querySelector('.phase2-fill');
-                let box = fillText.getBBox();
+            // 4. Anchor Gradients & Patterns mathematically
+            document.getElementById('p2-stroke-grad').setAttribute('y1', bottomY);
+            document.getElementById('p2-stroke-grad').setAttribute('y2', topY);
+            
+            document.getElementById('p2-fill-grad').setAttribute('y1', topY);
+            document.getElementById('p2-fill-grad').setAttribute('y2', bottomY);
 
-                // 1. THE AUTO-FIT ENGINE
-                const safeW = canvasW * 0.9;
-                const safeH = canvasH * 0.9;
+            const pat = document.getElementById('palm-pattern');
+            pat.setAttribute('y', topY);
+            pat.setAttribute('width', viewW);
+            pat.setAttribute('height', actualTextHeight);
+            
+            const img = document.getElementById('palm-img');
+            img.setAttribute('width', viewW);
+            img.setAttribute('height', actualTextHeight);
 
-                if (box.width > safeW || box.height > safeH) {
-                    const scale = Math.min(safeW / box.width, safeH / box.height);
-                    const newFontSize = Math.floor(400 * scale);
-                    document.documentElement.style.setProperty('--font-size', `${newFontSize}px`);
+            // 5. Dynamic SMIL Animations based on calculated bounds
+            const rootStyles = getComputedStyle(document.documentElement);
+            const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
+            const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
+            const p3Dur = parseFloat(rootStyles.getPropertyValue('--phase3-duration')); 
+            const p2Start = p1Dur;
+            const p3Start = p1Dur + p2Dur;
+
+            const createAnim = (attr, from, to, dur, begin, calcMode = 'spline') => {
+                const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+                anim.setAttribute('attributeName', attr);
+                anim.setAttribute('from', from);
+                anim.setAttribute('to', to);
+                anim.setAttribute('begin', `${begin}s`);
+                anim.setAttribute('dur', `${dur}s`);
+                anim.setAttribute('fill', 'freeze');
+                anim.setAttribute('calcMode', calcMode);
+                if (calcMode === 'spline') {
+                    anim.setAttribute('keyTimes', '0; 1');
+                    anim.setAttribute('keySplines', '0.4 0 0.2 1'); 
                 }
+                return anim;
+            };
 
-                // Double animation-frame wait guarantees the browser has updated the smaller font size physically
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        // Get the newly scaled, perfect bounding box
-                        box = fillText.getBBox();
+            // PHASE 1: Top-Down Cinematic Wipe ensures it drops entirely over the text
+            const grad = document.getElementById('mask-grad');
+            grad.appendChild(createAnim('y1', topY - 1500, bottomY + 500, p1Dur, 0));
+            grad.appendChild(createAnim('y2', topY - 1000, bottomY + 1000, p1Dur, 0));
 
-                        // 2. Map absolute gradients exactly to the custom text size
-                        document.getElementById('p2-stroke-grad').setAttribute('y1', box.y + box.height);
-                        document.getElementById('p2-stroke-grad').setAttribute('y2', box.y);
-                        
-                        document.getElementById('p2-fill-grad').setAttribute('y1', box.y);
-                        document.getElementById('p2-fill-grad').setAttribute('y2', box.y + box.height);
+            // PHASE 2: Bottom-Up Bloom Wipe spans safely across the text height
+            const fillRect = document.getElementById('fill-wipe-rect');
+            fillRect.appendChild(createAnim('y', bottomY + 500, topY - 1000, p2Dur, p2Start));
 
-                        // 3. Build SMIL Animations dynamically
-                        const rootStyles = getComputedStyle(document.documentElement);
-                        const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
-                        const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
-                        const p3Dur = parseFloat(rootStyles.getPropertyValue('--phase3-duration')); 
-                        const p2Start = p1Dur;
-                        const p3Start = p1Dur + p2Dur;
+            // PHASE 3: Seamless Color Morph
+            document.getElementById('stop-1').appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
+            document.getElementById('stop-2').appendChild(createAnim('stop-color', '#f465bf', '#776add', p3Dur, p3Start, 'linear'));
+            document.getElementById('stop-4').appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
 
-                        const createAnim = (attr, from, to, dur, begin, calcMode = 'spline') => {
-                            const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-                            anim.setAttribute('attributeName', attr);
-                            anim.setAttribute('from', from);
-                            anim.setAttribute('to', to);
-                            anim.setAttribute('begin', begin);
-                            anim.setAttribute('dur', `${dur}s`);
-                            anim.setAttribute('fill', 'freeze');
-                            anim.setAttribute('calcMode', calcMode);
-                            if (calcMode === 'spline') {
-                                anim.setAttribute('keyTimes', '0; 1');
-                                anim.setAttribute('keySplines', '0.4 0 0.2 1'); 
-                            }
-                            return anim;
-                        };
-
-                        // PHASE 1: Cinematic Wipe
-                        const grad = document.getElementById('mask-grad');
-                        grad.appendChild(createAnim('y1', box.y - 1000, box.y + box.height + 200, p1Dur, 0));
-                        grad.appendChild(createAnim('y2', box.y - 500, box.y + box.height + 500, p1Dur, 0));
-
-                        // PHASE 2: Bottom-Up Bloom Wipe
-                        const fillRect = document.getElementById('fill-wipe-rect');
-                        fillRect.appendChild(createAnim('y', box.y + box.height + 200, box.y - 4000, p2Dur, p2Start));
-
-                        // PHASE 3: Color Morph
-                        document.getElementById('stop-1').appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
-                        document.getElementById('stop-2').appendChild(createAnim('stop-color', '#f465bf', '#776add', p3Dur, p3Start, 'linear'));
-                        document.getElementById('stop-4').appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
-
-                        // PHASE 3: Palm Tree Reveal
-                        document.querySelectorAll('.phase3-palms').forEach(p => {
-                            p.appendChild(createAnim('opacity', '0', '0.85', p3Dur, p3Start, 'linear'));
-                        });
-                    });
-                });
+            // PHASE 3: Reveal Palms
+            document.querySelectorAll('.phase3-palms').forEach(p => {
+                p.appendChild(createAnim('opacity', '0', '0.85', p3Dur, p3Start, 'linear'));
             });
         });
     </script>
