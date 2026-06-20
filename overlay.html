@@ -63,7 +63,6 @@
 
         /* =========================================
            PHASE 1: VOLUMETRIC LIGHT RAYS 
-           (Reverted to absolute PX to restore smooth bloom)
            ========================================= */
         .ray-base {
             fill: transparent;
@@ -155,8 +154,8 @@
                 <stop id="stop-4" offset="100%" stop-color="#f465bf" /> 
             </linearGradient>
 
-            <pattern id="palm-pattern" patternUnits="userSpaceOnUse" x="0">
-                <image id="palm-img" href="palms.png" xlink:href="palms.png" preserveAspectRatio="xMidYMid slice" />
+            <pattern id="palm-pattern" width="100%" height="100%" patternContentUnits="objectBoundingBox">
+                <image id="palm-img" href="palms.png" xlink:href="palms.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice" />
             </pattern>
 
             <linearGradient id="mask-grad" x1="0" x2="0" gradientUnits="userSpaceOnUse">
@@ -173,7 +172,7 @@
                 <stop offset="100%" stop-color="white" />
             </linearGradient>
             <mask id="fill-wipe-mask">
-                <rect id="fill-wipe-rect" x="-5000" width="10000" height="3000" fill="url(#bloom-wipe-grad)" />
+                <rect id="fill-wipe-rect" x="-5000" y="5000" width="10000" height="3000" fill="url(#bloom-wipe-grad)" />
             </mask>
 
             <mask id="block-inner">
@@ -237,7 +236,7 @@
             svg.style.width = '1920px';
             svg.style.height = '1080px';
 
-            // 3. Mathematical Centering (Replaces buggy getBBox)
+            // 3. Mathematical Centering
             const centerY = viewH / 2;
             const startOffset = -((lines.length - 1) * lineSpacing) / 2;
             
@@ -258,21 +257,12 @@
                 });
             });
 
-            // 4. Anchor Gradients & Patterns mathematically
+            // 4. Anchor Gradients mathematically
             document.getElementById('p2-stroke-grad').setAttribute('y1', bottomY);
             document.getElementById('p2-stroke-grad').setAttribute('y2', topY);
             
             document.getElementById('p2-fill-grad').setAttribute('y1', topY);
             document.getElementById('p2-fill-grad').setAttribute('y2', bottomY);
-
-            const pat = document.getElementById('palm-pattern');
-            pat.setAttribute('y', topY);
-            pat.setAttribute('width', viewW);
-            pat.setAttribute('height', actualTextHeight);
-            
-            const img = document.getElementById('palm-img');
-            img.setAttribute('width', viewW);
-            img.setAttribute('height', actualTextHeight);
 
             // 5. Dynamic SMIL Animations based on calculated bounds
             const rootStyles = getComputedStyle(document.documentElement);
@@ -298,7 +288,7 @@
                 return anim;
             };
 
-            // PHASE 1: Top-Down Cinematic Wipe ensures it drops entirely over the text
+            // PHASE 1: Top-Down Cinematic Wipe
             const grad = document.getElementById('mask-grad');
             grad.appendChild(createAnim('y1', topY - 1500, bottomY + 500, p1Dur, 0));
             grad.appendChild(createAnim('y2', topY - 1000, bottomY + 1000, p1Dur, 0));
