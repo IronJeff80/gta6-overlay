@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GTA 6 Stream Overlay Generator</title>
     <style>
+        /* Load the GTA Font for the Dashboard UI! */
+        @font-face {
+            font-family: 'GTA Art Deco';
+            src: url('GTA Art Deco - Medium.ttf') format('truetype');
+            font-weight: 900;
+        }
+        @font-face {
+            font-family: 'GTA Art Deco';
+            src: url('GTA Art Deco - Regular.ttf') format('truetype');
+            font-weight: normal;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0d0015;
@@ -28,6 +40,9 @@
             text-align: center;
             margin-top: 0;
             color: #ffb300;
+            font-family: 'GTA Art Deco', sans-serif;
+            font-weight: 900;
+            letter-spacing: 2px;
         }
         label {
             font-weight: bold;
@@ -45,6 +60,14 @@
             color: white;
             font-size: 16px;
             box-sizing: border-box;
+        }
+        /* Make the text area preview the GTA font */
+        textarea {
+            font-family: 'GTA Art Deco', sans-serif;
+            font-weight: 900;
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 2px;
         }
         .row {
             display: flex;
@@ -109,7 +132,6 @@
             const w = document.getElementById('obs-w').value;
             const h = document.getElementById('obs-h').value;
             
-            // Gets the current URL path and swaps index.html for overlay.html
             const baseUrl = window.location.href.split('?')[0].replace('index.html', '');
             const finalUrl = `${baseUrl}overlay.html?text=${encodeURIComponent(text)}&w=${w}&h=${h}`;
             
