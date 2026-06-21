@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA 6 Overlay - The Final Zoom Hide</title>
+    <style>
+        :root {
+            /* =========================================
+               🎨 THE COMMAND CENTER
+               ========================================= */
+            
+            /* TIMING SETTINGS */
+            --phase1-duration: 4s;  
+            --phase2-duration: 3s;  
+            --phase3-duration: 3s;  
+            --hold-duration: 4s;     /* NEW: How long to admire the sunset before hiding */
+            --hide-duration: 1.5s;   /* NEW: How fast it zooms past the camera */
+            
+            /* TEXT SETTINGS */
+            --font-family: 'Arial Black', Impact, sans-serif;
+            --font-size: 600px;          
+            --letter-spacing: 4px;      
+        }
+
+        /* OBS Transparent Background */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: transparent; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* Adds perspective so the zoom feels like physical 3D space */
+            perspective: 1000px; 
+        }
+
+        /* THE FLY-THROUGH HIDE ANIMATION */
+        svg {
+            width: 1920px;
+            height: 1080px;
+            overflow: visible;
+            transform-origin: center center;
+            
+            /* Calculates the total delay before the final zoom triggers */
+            animation: flyPastCamera var(--hide-duration) cubic-bezier(0.5, 0, 0.2, 1) forwards;
+            animation-delay: calc(var(--phase1-duration) + var(--phase2-duration) + var(--phase3-duration) + var(--hold-duration));
+        }
+
+        @keyframes flyPastCamera {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            60% {
+                opacity: 1; /* Keeps it bright and visible for the majority of the zoom */
+            }
+            100% {
+                transform: scale(40); /* Massive extreme zoom into the screen */
+                opacity: 0;
+            }
+        }
+
+        /* Shared Text Properties */
+        .text-base {
+            font-family: var(--font-family);
+            font-size: var(--font-size); 
+            font-weight: 900;
+            letter-spacing: var(--letter-spacing);
+            dominant-baseline: middle;
+            text-anchor: middle;
+            stroke-linejoin: miter;
+            stroke-miterlimit: 4; 
+        }
+
+        /* =========================================
+           PHASE 1: VOLUMETRIC LIGHT RAYS 
+           ========================================= */
+        .ray-base {
+            fill: transparent;
+            stroke: url(#gta6-gradient);
+        }
+        .ray-wrapper { mix-blend-mode: screen; }
+        .wrapper-5 { filter: blur(45px); opacity: 0.15; }
+        .wrapper-4 { filter: blur(25px); opacity: 0.25; }
+        .wrapper-3 { filter: blur(12px); opacity: 0.4; }
+        .wrapper-2 { filter: blur(6px); opacity: 0.7; }
+        .wrapper-1 { filter: blur(2px); opacity: 0.9; }
+
+        .ray-5 { stroke-width: 160px; }
+        .ray-4 { stroke-width: 100px; }
+        .ray-3 { stroke-width: 50px; }
+        .ray-2 { stroke-width: 24px; }
+        .ray-1 { stroke-width: 12px; }
+
+        /* The Glow Bleed Blocker */
+        .blocker-style {
+            fill: black;
+            stroke: black;
+            stroke-width: 26px; 
+        }
+
+        /* =========================================
+           PHASE 2 & 3: LAYER SIZING & ANIMATIONS
+           ========================================= */
+        
+        /* 1. Deep Purple Base Sign */
+        .gta-front-layer {
+            fill: #130024; 
+            stroke: #130024;
+            stroke-width: 28px; 
+        }
+
+        /* 2. Dynamic Fill (Solid, 100% Opaque so game doesn't bleed through) */
+        .phase2-fill {
+            fill: url(#p2-fill-grad);
+            stroke-width: 0px; 
+        }
+
+        /* 3. Palm Tree Layer (Fades in ON TOP of the fill during Phase 3) */
+        .phase3-palms {
+            fill: url(#palm-pattern);
+            opacity: 0; 
+            /* THE MAGIC TRICK: 'Multiply' forces the dark silhouette to burn into the bright sunset below it! */
+            mix-blend-mode: multiply; 
+        }
+
+        /* 4. Gradient Outer Stroke */
+        .phase2-grad-stroke {
+            fill: transparent;
+            stroke: url(#p2-stroke-grad);
+            stroke-width: 20px; 
+            opacity: 0;
+            animation: fadeIn var(--phase2-duration) ease-in-out forwards;
+            animation-delay: var(--phase1-duration); 
+        }
+
+        /* 5. White Inner Stroke */
+        .phase2-white-stroke {
+            fill: transparent;
+            stroke: white;
+            stroke-width: 8px; 
+            opacity: 0;
+            animation: fadeIn var(--phase2-duration) ease-in-out forwards;
+            animation-delay: var(--phase1-duration); 
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <svg viewBox="0 0 1920 1080" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs>
+            <linearGradient id="gta6-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#c800ff" />
+                <stop offset="50%" stop-color="#ffb300" />
+                <stop offset="100%" stop-color="#c800ff" />
+            </linearGradient>
+
+            <linearGradient id="p2-stroke-grad" gradientUnits="userSpaceOnUse" x1="0" y1="920" x2="0" y2="340">
+                <stop offset="0%" stop-color="#790078" />
+                <stop offset="100%" stop-color="#3e0062" />
+            </linearGradient>
+
+            <linearGradient id="p2-fill-grad" gradientUnits="userSpaceOnUse" x1="0" y1="340" x2="0" y2="920">
+                <stop id="stop-1" offset="0%"   stop-color="#3e0062" /> 
+                <stop id="stop-2" offset="20%"  stop-color="#f465bf" /> 
+                <stop id="stop-3" offset="50%"  stop-color="#f465bf" /> 
+                <stop id="stop-4" offset="100%" stop-color="#f465bf" /> 
+            </linearGradient>
+
+            <pattern id="palm-pattern" width="100%" height="100%" patternContentUnits="objectBoundingBox">
+                <image href="palms.png" xlink:href="palms.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice" />
+            </pattern>
+
+            <linearGradient id="mask-grad" x1="0" y1="-500" x2="0" y2="-200" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="white" />
+                <stop offset="100%" stop-color="black" />
+            </linearGradient>
+            <mask id="reveal-mask">
+                <rect x="-1000" y="-2000" width="4000" height="6000" fill="url(#mask-grad)" />
+            </mask>
+
+            <linearGradient id="bloom-wipe-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="black" />
+                <stop offset="30%" stop-color="white" />
+                <stop offset="100%" stop-color="white" />
+            </linearGradient>
+            <mask id="fill-wipe-mask">
+                <rect id="fill-wipe-rect" x="-1000" y="1000" width="4000" height="3000" fill="url(#bloom-wipe-grad)" />
+            </mask>
+
+            <mask id="block-inner">
+                <rect x="-1000" y="-1000" width="4000" height="4000" fill="white" />
+                <text x="50%" y="50%" class="text-base blocker-style auto-text"></text>
+            </mask>
+        </defs>
+        
+        <g class="light-burst" mask="url(#block-inner)">
+            <g class="ray-wrapper wrapper-5"><text x="50%" y="50%" class="text-base ray-base ray-5 auto-text" mask="url(#reveal-mask)"></text></g>
+            <g class="ray-wrapper wrapper-4"><text x="50%" y="50%" class="text-base ray-base ray-4 auto-text" mask="url(#reveal-mask)"></text></g>
+            <g class="ray-wrapper wrapper-3"><text x="50%" y="50%" class="text-base ray-base ray-3 auto-text" mask="url(#reveal-mask)"></text></g>
+            <g class="ray-wrapper wrapper-2"><text x="50%" y="50%" class="text-base ray-base ray-2 auto-text" mask="url(#reveal-mask)"></text></g>
+            <g class="ray-wrapper wrapper-1"><text x="50%" y="50%" class="text-base ray-base ray-1 auto-text" mask="url(#reveal-mask)"></text></g>
+        </g>
+        
+        <g mask="url(#reveal-mask)">
+            
+            <text x="50%" y="50%" class="text-base gta-front-layer auto-text"></text>
+            
+            <g mask="url(#fill-wipe-mask)">
+                <text x="50%" y="50%" class="text-base phase2-fill auto-text"></text>
+
+                <text x="50%" y="50%" class="text-base phase3-palms auto-text"></text>
+            </g>
+
+            <text x="50%" y="50%" class="text-base phase2-grad-stroke auto-text"></text>
+            <text x="50%" y="50%" class="text-base phase2-white-stroke auto-text"></text>
+        </g>
+    </svg>
+
+    <script>
+        /* =========================================
+           📝 EASY TEXT SETTINGS
+           ========================================= */
+        const textSettings = {
+            content: "BIG\nCAT", 
+            lineSpacing: 480,
+            verticalOffset: -170
+        };
+
+        // --- Core Engine & Animation Injection ---
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Parse and build the multiline text
+            const lines = textSettings.content.split('\n');
+            const textElements = document.querySelectorAll('.auto-text');
+            
+            textElements.forEach(el => {
+                el.innerHTML = ''; 
+                lines.forEach((line, index) => {
+                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                    tspan.textContent = line;
+                    tspan.setAttribute('x', '50%');
+                    if (index === 0) {
+                        tspan.setAttribute('dy', textSettings.verticalOffset);
+                    } else {
+                        tspan.setAttribute('dy', textSettings.lineSpacing);
+                    }
+                    el.appendChild(tspan);
+                });
+            });
+
+            // 2. The SMIL Animation Brain
+            const rootStyles = getComputedStyle(document.documentElement);
+            const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
+            const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
+            const p3Dur = parseFloat(rootStyles.getPropertyValue('--phase3-duration')); 
+
+            const p2Start = p1Dur;
+            const p3Start = p1Dur + p2Dur;
+
+            const createAnim = (attr, from, to, duration, begin, calcMode = 'spline') => {
+                const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+                anim.setAttribute('attributeName', attr);
+                anim.setAttribute('from', from);
+                anim.setAttribute('to', to);
+                anim.setAttribute('begin', begin);
+                anim.setAttribute('dur', duration);
+                anim.setAttribute('fill', 'freeze');
+                anim.setAttribute('calcMode', calcMode);
+                if (calcMode === 'spline') {
+                    anim.setAttribute('keyTimes', '0; 1');
+                    anim.setAttribute('keySplines', '0.4 0 0.2 1'); 
+                }
+                return anim;
+            };
+
+            // PHASE 1: Top-Down Cinematic Wipe
+            const grad = document.getElementById('mask-grad');
+            grad.appendChild(createAnim('y1', '-500', '1500', `${p1Dur}s`, '0s'));
+            grad.appendChild(createAnim('y2', '-200', '1800', `${p1Dur}s`, '0s'));
+
+            // PHASE 2: Bottom-Up Bloom Wipe
+            const fillRect = document.getElementById('fill-wipe-rect');
+            fillRect.appendChild(createAnim('y', '1000', '-1000', `${p2Dur}s`, `${p2Start}s`));
+
+            // PHASE 3: Seamless Color Morph
+            const stop1 = document.getElementById('stop-1');
+            stop1.appendChild(createAnim('stop-color', '#3e0062', '#296cf1', `${p3Dur}s`, `${p3Start}s`, 'linear'));
+            const stop2 = document.getElementById('stop-2');
+            stop2.appendChild(createAnim('stop-color', '#f465bf', '#776add', `${p3Dur}s`, `${p3Start}s`, 'linear'));
+            const stop4 = document.getElementById('stop-4');
+            stop4.appendChild(createAnim('stop-color', '#f465bf', '#fed04a', `${p3Dur}s`, `${p3Start}s`, 'linear'));
+
+            // PHASE 3: Fade in the Palm Trees ON TOP of the solid gradient
+            const palms = document.querySelectorAll('.phase3-palms');
+            palms.forEach(p => p.appendChild(createAnim('opacity', '0', '0.85', `${p3Dur}s`, `${p3Start}s`, 'linear')));
+        });
+    </script>
+
+</body>
+</html>
