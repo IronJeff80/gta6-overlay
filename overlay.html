@@ -27,10 +27,11 @@
             --hold-duration: 4s;     
             --hide-duration: 1.5s;   
             
-            /* TEXT SETTINGS */
+            /* DYNAMIC TEXT VARIABLES (Controlled by JS) */
             --font-family: 'Mesmerize', 'Arial Black', Impact, sans-serif;
-            --font-size: 400px;          
-            --letter-spacing: 4px;      
+            --font-size: 1000px; /* Starting Default */         
+            --letter-spacing: 0.04em;   
+            --stroke-scale: 1.666; /* Base scale for 1000px font */
         }
 
         /* OBS Transparent Background */
@@ -47,8 +48,9 @@
 
         /* THE FLY-THROUGH HIDE ANIMATION */
         svg {
-            overflow: visible;
+            overflow: visible; /* Prevents glow clipping on edges */
             transform-origin: center center;
+            
             animation: flyPastCamera var(--hide-duration) cubic-bezier(0.5, 0, 0.2, 1) forwards;
             animation-delay: calc(var(--phase1-duration) + var(--phase2-duration) + var(--phase3-duration) + var(--hold-duration));
         }
@@ -65,8 +67,11 @@
             font-size: var(--font-size); 
             font-weight: 900;
             letter-spacing: var(--letter-spacing);
-            dominant-baseline: middle;
+            
+            /* NATIVE SVG CENTERING */
+            dominant-baseline: central;
             text-anchor: middle;
+            
             stroke-linejoin: miter;
             stroke-miterlimit: 4; 
         }
@@ -85,27 +90,26 @@
         .wrapper-2 { filter: blur(6px); opacity: 0.7; }
         .wrapper-1 { filter: blur(2px); opacity: 0.9; }
 
-        .ray-5 { stroke-width: 160px; }
-        .ray-4 { stroke-width: 100px; }
-        .ray-3 { stroke-width: 50px; }
-        .ray-2 { stroke-width: 24px; }
-        .ray-1 { stroke-width: 12px; }
+        /* Strokes scale dynamically with the text size */
+        .ray-5 { stroke-width: calc(160px * var(--stroke-scale)); }
+        .ray-4 { stroke-width: calc(100px * var(--stroke-scale)); }
+        .ray-3 { stroke-width: calc(50px * var(--stroke-scale)); }
+        .ray-2 { stroke-width: calc(24px * var(--stroke-scale)); }
+        .ray-1 { stroke-width: calc(12px * var(--stroke-scale)); }
 
-        /* The Glow Bleed Blocker */
         .blocker-style {
             fill: black;
             stroke: black;
-            stroke-width: 26px; 
+            stroke-width: calc(26px * var(--stroke-scale)); 
         }
 
         /* =========================================
            PHASE 2 & 3: LAYER SIZING & ANIMATIONS
            ========================================= */
-        
         .gta-front-layer {
             fill: #130024; 
             stroke: #130024;
-            stroke-width: 28px; 
+            stroke-width: calc(28px * var(--stroke-scale)); 
         }
 
         .phase2-fill {
@@ -122,7 +126,7 @@
         .phase2-grad-stroke {
             fill: transparent;
             stroke: url(#p2-stroke-grad);
-            stroke-width: 20px; 
+            stroke-width: calc(20px * var(--stroke-scale)); 
             opacity: 0;
             animation: fadeIn var(--phase2-duration) ease-in-out forwards;
             animation-delay: var(--phase1-duration); 
@@ -131,7 +135,7 @@
         .phase2-white-stroke {
             fill: transparent;
             stroke: white;
-            stroke-width: 8px; 
+            stroke-width: calc(8px * var(--stroke-scale)); 
             opacity: 0;
             animation: fadeIn var(--phase2-duration) ease-in-out forwards;
             animation-delay: var(--phase1-duration); 
@@ -144,7 +148,7 @@
 </head>
 <body>
 
-    <svg id="main-svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg id="main-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs>
             <linearGradient id="gta6-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#c800ff" />
@@ -159,7 +163,7 @@
 
             <linearGradient id="p2-fill-grad" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
                 <stop id="stop-1" offset="0%"   stop-color="#3e0062" /> 
-                <stop id="stop-2" offset="25%"  stop-color="#f465bf" /> 
+                <stop id="stop-2" offset="20%"  stop-color="#f465bf" /> 
                 <stop id="stop-3" offset="50%"  stop-color="#f465bf" /> 
                 <stop id="stop-4" offset="100%" stop-color="#f465bf" /> 
             </linearGradient>
@@ -168,12 +172,13 @@
                 <image id="palm-img" href="palms.png" xlink:href="palms.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice" />
             </pattern>
 
-            <linearGradient id="mask-grad" x1="0" x2="0" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mask-grad" x1="0" y1="-10%" x2="0" y2="0%" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stop-color="white" />
                 <stop offset="100%" stop-color="black" />
             </linearGradient>
+            
             <mask id="reveal-mask">
-                <rect x="-5000" y="-5000" width="10000" height="15000" fill="url(#mask-grad)" />
+                <rect x="-1000" y="-1000" width="4000" height="4000" fill="url(#mask-grad)" />
             </mask>
 
             <linearGradient id="bloom-wipe-grad" x1="0" y1="0" x2="0" y2="1">
@@ -181,12 +186,13 @@
                 <stop offset="30%" stop-color="white" />
                 <stop offset="100%" stop-color="white" />
             </linearGradient>
+            
             <mask id="fill-wipe-mask">
-                <rect id="fill-wipe-rect" x="-5000" y="5000" width="10000" height="3000" fill="url(#bloom-wipe-grad)" />
+                <rect id="fill-wipe-rect" x="-1000" y="2000" width="4000" height="4000" fill="url(#bloom-wipe-grad)" />
             </mask>
 
             <mask id="block-inner">
-                <rect x="-5000" y="-5000" width="10000" height="10000" fill="white" />
+                <rect x="-1000" y="-1000" width="4000" height="4000" fill="white" />
                 <text x="50%" y="50%" class="text-base blocker-style auto-text"></text>
             </mask>
         </defs>
@@ -214,107 +220,144 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Waits for custom font to load to ensure perfect text measurement
+            // Wait for custom font to load to ensure perfect bounds measurement
             document.fonts.ready.then(() => {
                 
-                // Read URL Parameters (Including the width and height from the generator)
+                // 1. Read URL Parameters from index.html Generator
                 const urlParams = new URLSearchParams(window.location.search);
                 const userText = urlParams.get('text') || "BIG\nCAT";
                 const canvasW = parseInt(urlParams.get('w')) || 1920;
                 const canvasH = parseInt(urlParams.get('h')) || 1080;
-                
-                const lines = userText.split('\n');
-                const lineSpacing = 330;
-                const capHeight = 300; 
-                const descender = 100;
 
-                // 1. Measure string width natively to ensure it perfectly fits
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.font = "900 400px 'Mesmerize', 'Arial Black', Impact, sans-serif";
-                let textWidth = 0;
-                lines.forEach(line => {
-                    const spacing = line.length * 4; 
-                    const w = ctx.measureText(line).width + spacing;
-                    if (w > textWidth) textWidth = w;
-                });
-
-                const textHeight = (lines.length - 1) * lineSpacing + capHeight + descender;
-
-                // 2. Adjust viewBox Camera instead of squishing graphics
-                const scale = Math.max(1, textWidth / (canvasW * 0.9), textHeight / (canvasH * 0.9));
-                const viewW = canvasW * scale;
-                const viewH = canvasH * scale;
-
+                // 2. Apply canvas dimensions to SVG
                 const svg = document.getElementById('main-svg');
-                svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
+                svg.setAttribute('viewBox', `0 0 ${canvasW} ${canvasH}`);
                 svg.style.width = `${canvasW}px`;
                 svg.style.height = `${canvasH}px`;
-
-                // 3. Mathematical Centering
-                const centerY = viewH / 2;
-                const startOffset = -((lines.length - 1) * lineSpacing) / 2;
                 
-                const topY = centerY + startOffset - capHeight;
-                const bottomY = centerY + (lines.length - 1) * lineSpacing + startOffset + descender;
-
-                // Populate Text
-                const textElements = document.querySelectorAll('.auto-text');
-                textElements.forEach(el => {
-                    el.innerHTML = ''; 
-                    lines.forEach((line, index) => {
-                        const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                        tspan.textContent = line;
-                        tspan.setAttribute('x', '50%');
-                        tspan.setAttribute('dy', index === 0 ? startOffset : lineSpacing);
-                        el.appendChild(tspan);
-                    });
-                });
-
-                // 5. Dynamic SMIL Animations based on calculated bounds
-                const rootStyles = getComputedStyle(document.documentElement);
-                const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
-                const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
-                const p3Dur = parseFloat(rootStyles.getPropertyValue('--phase3-duration')); 
-                const p2Start = p1Dur;
-                const p3Start = p1Dur + p2Dur;
-
-                const createAnim = (attr, from, to, dur, begin, calcMode = 'spline') => {
-                    const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-                    anim.setAttribute('attributeName', attr);
-                    anim.setAttribute('from', from);
-                    anim.setAttribute('to', to);
-                    anim.setAttribute('begin', `${begin}s`);
-                    anim.setAttribute('dur', `${dur}s`);
-                    anim.setAttribute('fill', 'freeze');
-                    anim.setAttribute('calcMode', calcMode);
-                    if (calcMode === 'spline') {
-                        anim.setAttribute('keyTimes', '0; 1');
-                        anim.setAttribute('keySplines', '0.4 0 0.2 1'); 
-                    }
-                    return anim;
+                // 3. Proportional Safe Zone Calculation based on User's Canvas Size
+                const textSettings = {
+                    content: userText, 
+                    lineHeightEm: 0.84, 
+                    maxWidth: canvasW * (1600 / 1920),    
+                    maxHeight: canvasH * (900 / 1080),
+                    defaultSize: 1000 
                 };
 
-                // PHASE 1: Top-Down Cinematic Wipe
-                const grad = document.getElementById('mask-grad');
-                grad.appendChild(createAnim('y1', topY - 1500, bottomY + 500, p1Dur, 0));
-                grad.appendChild(createAnim('y2', topY - 1000, bottomY + 1000, p1Dur, 0));
+                const lines = textSettings.content.split('\n');
+                const textElements = document.querySelectorAll('.auto-text');
+                const root = document.documentElement;
 
-                // PHASE 2: Bottom-Up Bloom Wipe spans safely across the text height
-                const fillRect = document.getElementById('fill-wipe-rect');
-                fillRect.appendChild(createAnim('y', bottomY + 500, topY - 1000, p2Dur, p2Start));
+                // 4. Create a hidden HTML Ruler to safely measure text dimensions 
+                const ruler = document.createElement('div');
+                ruler.style.position = 'absolute';
+                ruler.style.visibility = 'hidden';
+                ruler.style.whiteSpace = 'pre';
+                ruler.style.fontFamily = "'Mesmerize', 'Arial Black', Impact, sans-serif";
+                ruler.style.fontSize = `${textSettings.defaultSize}px`;
+                ruler.style.fontWeight = '900';
+                ruler.style.letterSpacing = '0.04em';
+                ruler.style.lineHeight = textSettings.lineHeightEm;
+                
+                // Add the text lines to the ruler
+                ruler.innerHTML = lines.join('<br>');
+                document.body.appendChild(ruler);
 
-                // PHASE 3: Seamless Color Morph
-                document.getElementById('stop-1').appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
-                document.getElementById('stop-2').appendChild(createAnim('stop-color', '#f465bf', '#776add', p3Dur, p3Start, 'linear'));
-                document.getElementById('stop-4').appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
+                // Wait 1 frame for the DOM to calculate the ruler's size
+                requestAnimationFrame(() => {
+                    const rulerWidth = ruler.offsetWidth;
+                    const rulerHeight = ruler.offsetHeight;
+                    
+                    const scaleX = textSettings.maxWidth / rulerWidth;
+                    const scaleY = textSettings.maxHeight / rulerHeight;
+                    
+                    // Allows the text to naturally scale UP to the maximum possible size!
+                    const finalScale = Math.min(scaleX, scaleY);
+                    
+                    const finalFontSize = textSettings.defaultSize * finalScale;
+                    const strokeScale = finalFontSize / 600; 
+                    
+                    // Apply to CSS Roots
+                    root.style.setProperty('--font-size', `${finalFontSize}px`);
+                    root.style.setProperty('--stroke-scale', strokeScale);
+                    
+                    // Clean up the ruler
+                    document.body.removeChild(ruler);
 
-                // PHASE 3: Reveal Palms
-                document.querySelectorAll('.phase3-palms').forEach(p => {
-                    p.appendChild(createAnim('opacity', '0', '0.85', p3Dur, p3Start, 'linear'));
+                    // 5. Populate SVG Text Nodes with multi-line support and perfect native centering
+                    textElements.forEach(el => {
+                        el.innerHTML = ''; 
+                        lines.forEach((line, index) => {
+                            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                            tspan.textContent = line;
+                            tspan.setAttribute('x', '50%');
+                            
+                            // Align lines relative to the middle of the text block
+                            if (index === 0) {
+                                const offsetEm = -((lines.length - 1) * textSettings.lineHeightEm) / 2;
+                                tspan.setAttribute('dy', `${offsetEm}em`);
+                            } else {
+                                tspan.setAttribute('dy', `${textSettings.lineHeightEm}em`);
+                            }
+                            el.appendChild(tspan);
+                        });
+                    });
+
+                    // Trigger the animation wipes
+                    requestAnimationFrame(() => {
+                        initAnimations();
+                    });
                 });
             });
         });
+
+        function initAnimations() {
+            const rootStyles = getComputedStyle(document.documentElement);
+            const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
+            const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
+            const p3Dur = parseFloat(rootStyles.getPropertyValue('--phase3-duration')); 
+
+            const p2Start = p1Dur;
+            const p3Start = p1Dur + p2Dur;
+
+            const createAnim = (attr, from, to, duration, begin, calcMode = 'spline') => {
+                const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+                anim.setAttribute('attributeName', attr);
+                anim.setAttribute('from', from);
+                anim.setAttribute('to', to);
+                anim.setAttribute('begin', `${begin}s`);
+                anim.setAttribute('dur', `${duration}s`);
+                anim.setAttribute('fill', 'freeze');
+                anim.setAttribute('calcMode', calcMode);
+                if (calcMode === 'spline') {
+                    anim.setAttribute('keyTimes', '0; 1');
+                    anim.setAttribute('keySplines', '0.4 0 0.2 1'); 
+                }
+                return anim;
+            };
+
+            // PHASE 1: Top-Down Cinematic Wipe
+            const grad = document.getElementById('mask-grad');
+            grad.appendChild(createAnim('y1', '-10%', '110%', p1Dur, 0));
+            grad.appendChild(createAnim('y2', '0%', '120%', p1Dur, 0));
+
+            // PHASE 2: Bottom-Up Bloom Wipe
+            const fillRect = document.getElementById('fill-wipe-rect');
+            // Starts far below the screen, animates up to reveal the fill
+            fillRect.appendChild(createAnim('y', '2000', '-1000', p2Dur, p2Start));
+
+            // PHASE 3: Seamless Color Morph
+            const stop1 = document.getElementById('stop-1');
+            stop1.appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
+            const stop2 = document.getElementById('stop-2');
+            stop2.appendChild(createAnim('stop-color', '#f465bf', '#776add', p3Dur, p3Start, 'linear'));
+            const stop4 = document.getElementById('stop-4');
+            stop4.appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
+
+            // PHASE 3: Fade in the Palm Trees ON TOP of the solid gradient
+            const palms = document.querySelectorAll('.phase3-palms');
+            palms.forEach(p => p.appendChild(createAnim('opacity', '0', '0.85', p3Dur, p3Start, 'linear')));
+        }
     </script>
 </body>
 </html>
