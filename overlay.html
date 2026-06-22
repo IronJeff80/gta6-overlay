@@ -160,14 +160,15 @@
             <linearGradient id="p2-fill-grad" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
                 <stop id="stop-1" offset="0%"   stop-color="#3e0062" /> 
                 <stop id="stop-2" offset="25%"  stop-color="#f465bf" /> 
-                <stop id="stop-3" offset="100%" stop-color="#f465bf" /> 
+                <stop id="stop-3" offset="50%"  stop-color="#f465bf" /> 
+                <stop id="stop-4" offset="100%" stop-color="#f465bf" /> 
             </linearGradient>
 
             <pattern id="palm-pattern" width="100%" height="100%" patternContentUnits="objectBoundingBox">
                 <image id="palm-img" href="palms.png" xlink:href="palms.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice" />
             </pattern>
 
-            <linearGradient id="mask-grad" x1="0" y1="-10%" x2="0" y2="0%" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mask-grad" x1="0" x2="0" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stop-color="white" />
                 <stop offset="100%" stop-color="black" />
             </linearGradient>
@@ -213,11 +214,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Waits for custom font to load to ensure perfect text width measurement
+            // Waits for custom font to load to ensure perfect text measurement
             document.fonts.ready.then(() => {
-                // Read URL Parameters
+                
+                // Read URL Parameters (Including the width and height from the generator)
                 const urlParams = new URLSearchParams(window.location.search);
                 const userText = urlParams.get('text') || "BIG\nCAT";
+                const canvasW = parseInt(urlParams.get('w')) || 1920;
+                const canvasH = parseInt(urlParams.get('h')) || 1080;
                 
                 const lines = userText.split('\n');
                 const lineSpacing = 330;
@@ -238,17 +242,21 @@
                 const textHeight = (lines.length - 1) * lineSpacing + capHeight + descender;
 
                 // 2. Adjust viewBox Camera instead of squishing graphics
-                const scale = Math.max(1, textWidth / (1920 * 0.9), textHeight / (1080 * 0.9));
-                const viewW = 1920 * scale;
-                const viewH = 1080 * scale;
+                const scale = Math.max(1, textWidth / (canvasW * 0.9), textHeight / (canvasH * 0.9));
+                const viewW = canvasW * scale;
+                const viewH = canvasH * scale;
 
                 const svg = document.getElementById('main-svg');
                 svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`);
-                svg.style.width = '1920px';
-                svg.style.height = '1080px';
+                svg.style.width = `${canvasW}px`;
+                svg.style.height = `${canvasH}px`;
 
                 // 3. Mathematical Centering
+                const centerY = viewH / 2;
                 const startOffset = -((lines.length - 1) * lineSpacing) / 2;
+                
+                const topY = centerY + startOffset - capHeight;
+                const bottomY = centerY + (lines.length - 1) * lineSpacing + startOffset + descender;
 
                 // Populate Text
                 const textElements = document.querySelectorAll('.auto-text');
@@ -263,7 +271,7 @@
                     });
                 });
 
-                // 4. Dynamic SMIL Animations based on calculated bounds
+                // 5. Dynamic SMIL Animations based on calculated bounds
                 const rootStyles = getComputedStyle(document.documentElement);
                 const p1Dur = parseFloat(rootStyles.getPropertyValue('--phase1-duration')); 
                 const p2Dur = parseFloat(rootStyles.getPropertyValue('--phase2-duration')); 
@@ -287,19 +295,19 @@
                     return anim;
                 };
 
-                // PHASE 1: Top-Down Cinematic Wipe (Using percentages to cover any screen size globally)
+                // PHASE 1: Top-Down Cinematic Wipe
                 const grad = document.getElementById('mask-grad');
-                grad.appendChild(createAnim('y1', '-10%', '110%', p1Dur, 0));
-                grad.appendChild(createAnim('y2', '0%', '120%', p1Dur, 0));
+                grad.appendChild(createAnim('y1', topY - 1500, bottomY + 500, p1Dur, 0));
+                grad.appendChild(createAnim('y2', topY - 1000, bottomY + 1000, p1Dur, 0));
 
-                // PHASE 2: Bottom-Up Bloom Wipe spanning safely across massive areas to clear the text
+                // PHASE 2: Bottom-Up Bloom Wipe spans safely across the text height
                 const fillRect = document.getElementById('fill-wipe-rect');
-                fillRect.appendChild(createAnim('y', '5000', '-5000', p2Dur, p2Start));
+                fillRect.appendChild(createAnim('y', bottomY + 500, topY - 1000, p2Dur, p2Start));
 
-                // PHASE 3: Seamless Color Morph animating the 3 distinct stops
+                // PHASE 3: Seamless Color Morph
                 document.getElementById('stop-1').appendChild(createAnim('stop-color', '#3e0062', '#296cf1', p3Dur, p3Start, 'linear'));
                 document.getElementById('stop-2').appendChild(createAnim('stop-color', '#f465bf', '#776add', p3Dur, p3Start, 'linear'));
-                document.getElementById('stop-3').appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
+                document.getElementById('stop-4').appendChild(createAnim('stop-color', '#f465bf', '#fed04a', p3Dur, p3Start, 'linear'));
 
                 // PHASE 3: Reveal Palms
                 document.querySelectorAll('.phase3-palms').forEach(p => {
