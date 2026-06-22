@@ -12,8 +12,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .container {
             background-color: #1a002b;
@@ -21,7 +23,7 @@
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(200, 0, 255, 0.2);
             width: 100%;
-            max-width: 500px;
+            max-width: 700px; /* Widened slightly to accommodate a nice preview */
             border: 1px solid #c800ff;
         }
         h1 {
@@ -50,26 +52,68 @@
             display: flex;
             gap: 15px;
         }
+        .btn-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
         button {
             width: 100%;
             padding: 15px;
-            margin-top: 30px;
-            background: linear-gradient(90deg, #c800ff, #ffb300);
             border: none;
             border-radius: 6px;
-            color: #000;
             font-weight: 900;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, filter 0.2s;
         }
         button:hover {
             transform: scale(1.02);
+            filter: brightness(1.1);
         }
-        .output-box {
+        .btn-preview {
+            background: linear-gradient(90deg, #5c0099, #c800ff);
+            color: white;
+        }
+        .btn-generate {
+            background: linear-gradient(90deg, #c800ff, #ffb300);
+            color: #000;
+        }
+        
+        /* === PREVIEW BOX STYLES === */
+        .preview-section {
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #3e0062;
+        }
+        .iframe-wrapper {
+            position: relative;
+            width: 100%;
+            /* Default 16:9 aspect ratio padding, updated by JS */
+            padding-top: 56.25%; 
+            background-color: #000;
+            border: 2px solid #3e0062;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+            background-image: linear-gradient(45deg, #111 25%, transparent 25%), 
+                              linear-gradient(-45deg, #111 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #111 75%), 
+                              linear-gradient(-45deg, transparent 75%, #111 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        .iframe-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            /* Shrunk down dynamically via CSS transform to fit the wrapper */
+            transform-origin: 0 0;
+            border: none;
+        }
+
+        .output-box {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -92,36 +136,106 @@
             </div>
         </div>
 
-        <button onclick="generateLink()">GENERATE OBS LINK</button>
+        <div class="btn-row">
+            <button class="btn-preview" onclick="updatePreview()">🔄 PREVIEW OVERLAY</button>
+            <button class="btn-generate" onclick="generateLink()">🔗 GENERATE LINK</button>
+        </div>
+
+        <div class="preview-section">
+            <label>Live Preview:</label>
+            <div class="iframe-wrapper" id="preview-wrapper">
+                <iframe id="preview-frame" src=""></iframe>
+            </div>
+        </div>
 
         <div class="output-box">
             <label>Paste this URL into an OBS Browser Source:</label>
             <div class="row">
-                <input type="text" id="output-url" readonly placeholder="Your URL will appear here...">
-                <button style="margin-top: 8px; width: 100px; font-size: 14px;" onclick="copyLink()">Copy</button>
+                <input type="text" id="output-url" readonly placeholder="Click Generate to create your URL...">
+                <button style="margin-top: 8px; width: 100px; font-size: 14px; background: #3e0062; color: white;" onclick="copyLink()">Copy</button>
             </div>
         </div>
     </div>
 
     <script>
-        function generateLink() {
+        // Helper function to safely build the URL parameters
+        function buildUrlParams() {
             const text = document.getElementById('obs-text').value;
             const w = document.getElementById('obs-w').value;
             const h = document.getElementById('obs-h').value;
             
-            // Gets the current URL path and swaps index.html for overlay.html
-            const baseUrl = window.location.href.split('?')[0].replace('index.html', '');
-            const finalUrl = `${baseUrl}overlay.html?text=${encodeURIComponent(text)}&w=${w}&h=${h}`;
+            const params = new URLSearchParams();
+            params.set('text', text);
+            params.set('w', w);
+            params.set('h', h);
+            
+            return {
+                queryString: params.toString(),
+                width: parseInt(w),
+                height: parseInt(h)
+            };
+        }
+
+        function updatePreview() {
+            const config = buildUrlParams();
+            const frame = document.getElementById('preview-frame');
+            
+            // Set the iframe source to overlay.html with the new parameters
+            // Adding a timestamp forces the iframe to reload the animation from the start
+            frame.src = `overlay.html?${config.queryString}&t=${Date.now()}`;
+
+            scaleIframe(config.width, config.height);
+        }
+
+        function scaleIframe(targetW, targetH) {
+            const wrapper = document.getElementById('preview-wrapper');
+            const frame = document.getElementById('preview-frame');
+            
+            // 1. Adjust the wrapper box aspect ratio to match the requested Canvas dimensions
+            const aspectPercentage = (targetH / targetW) * 100;
+            wrapper.style.paddingTop = `${aspectPercentage}%`;
+
+            // 2. Set the physical iframe to be exactly the requested Canvas size (e.g., 1920x1080)
+            frame.style.width = `${targetW}px`;
+            frame.style.height = `${targetH}px`;
+
+            // 3. Mathematically shrink the massive iframe down to fit inside our small preview box
+            const scale = wrapper.clientWidth / targetW;
+            frame.style.transform = `scale(${scale})`;
+        }
+
+        function generateLink() {
+            const config = buildUrlParams();
+            
+            // Build absolute URL based on the current domain/path
+            const absoluteBase = new URL('overlay.html', window.location.href);
+            const finalUrl = `${absoluteBase.href}?${config.queryString}`;
             
             document.getElementById('output-url').value = finalUrl;
         }
 
         function copyLink() {
             const copyText = document.getElementById("output-url");
+            if(!copyText.value) return alert("Please generate a link first!");
+            
             copyText.select();
             document.execCommand("copy");
             alert("Copied to clipboard!");
         }
+
+        // --- Event Listeners ---
+        
+        // Ensure iframe stays properly scaled if the user resizes their browser window
+        window.addEventListener('resize', () => {
+            const w = document.getElementById('obs-w').value || 1920;
+            const h = document.getElementById('obs-h').value || 1080;
+            scaleIframe(w, h);
+        });
+
+        // Load a default preview as soon as the page opens
+        window.onload = () => {
+            updatePreview();
+        };
     </script>
 </body>
 </html>
